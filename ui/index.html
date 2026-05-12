@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journey Agent</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <div class="app-container">
+    <header class="glass-header">
+      <div class="logo">
+        <i class="fa-solid fa-train-subway"></i>
+        <h1>Journey Agent</h1>
+      </div>
+      <div class="subtitle">Your AI-Powered Travel Planner</div>
+    </header>
+
+    <main class="chat-container" id="chatContainer">
+      <div class="message system">
+        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+        <div class="bubble">Hello! I'm your Journey Agent. I can help you find trains, check schedules, and track live status. Where would you like to go today?</div>
+      </div>
+    </main>
+
+    <footer class="input-area glass-footer">
+      <form id="chatForm">
+        <input type="text" id="userInput" placeholder="Ask about trains, schedules, or routes..." autocomplete="off" />
+        <button type="submit" id="sendBtn">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </footer>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

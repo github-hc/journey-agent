@@ -1,0 +1,12 @@
+{
+  "name": "journey-agent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -c \"cyan,magenta,yellow,green\" -n \"apis,mcp,orch,ui\" \"npm run dev --prefix apis\" \"npm run dev --prefix mcp-tools\" \"npm run dev --prefix orchestrator\" \"npx serve ui -p 3000\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "serve": "^14.2.6"
+  }
+}
