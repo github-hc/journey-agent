@@ -145,9 +145,6 @@ When a user asks: *"When is the next train to Edinburgh?"*
 - **Fail Gracefully:** If an API goes down, the orchestrator is instructed to explain the failure to the user rather than crashing the application.
 - **Determinism at the Boundaries:** While the LLM is probabilistic, all tool inputs and API outputs are strictly typed and validated at runtime using Zod.
 
-## Why TypeScript / Node.js?
-
-While Python is the traditional language of ML research, TypeScript has emerged as the premier language for AI systems engineering. Building JourneyAgent in TypeScript allows us to share Zod schemas across the entire stack (from the UI to the API proxy), leverage a massive ecosystem of web tools, and deploy a production-ready system with first-class type safety.
 
 
 
