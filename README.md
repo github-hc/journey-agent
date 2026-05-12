@@ -149,12 +149,7 @@ When a user asks: *"When is the next train to Edinburgh?"*
 
 While Python is the traditional language of ML research, TypeScript has emerged as the premier language for AI systems engineering. Building JourneyAgent in TypeScript allows us to share Zod schemas across the entire stack (from the UI to the API proxy), leverage a massive ecosystem of web tools, and deploy a production-ready system with first-class type safety.
 
-## Future Improvements
 
-- [ ] Implement a distributed RAG pipeline for complex, multi-day itinerary planning.
-- [ ] Add support for streaming tool execution states to the UI.
-- [ ] Containerize the entire stack (including Ollama) via Docker Compose.
-- [ ] Expand the MCP toolset to include weather and hotel APIs.
 
 ---
 <div align="center">
