@@ -123,9 +123,12 @@ npm run dev
 ## Example Usage
 
 ### User Queries
-- *"What are the next trains from London Paddington to Reading?"*
-- *"Are there any delays on the mainline route today?"*
-- *"Plan a journey for me arriving at Manchester Piccadilly before 10 AM tomorrow."*
+1. I need to travel from Jaipur to Delhi tomorrow. What are my train options?
+2. What trains are arriving at New Delhi station in the next 4 hours?
+3. Can you show me the full route and stoppage schedule for the Ajmer Shatabdi Express going to Delhi?
+4. Are there any trains running on the network right now? Give me a quick overview of the live map.
+5. Give me a list of all Vande Bharat trains operating in the North Western Railway zone."
+6. I'm currently at Jaipur Junction. Find the next fast train leaving for New Delhi, and tell me its entire route so I know how many stops there are.
 
 ### Orchestration Flow
 When a user asks: *"When is the next train to Edinburgh?"*

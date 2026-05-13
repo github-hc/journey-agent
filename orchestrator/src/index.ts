@@ -7,6 +7,7 @@ import 'dotenv/config';
 
 import { McpClientService } from './mcpClient.js';
 import { OllamaOrchestrator } from './ollamaClient.js';
+import { logTrace } from './logger.js';
 
 const app = new Hono();
 app.use('/*', cors());
@@ -38,6 +39,8 @@ app.post('/api/chat', async (c) => {
   } catch {
     return c.json({ error: 'Invalid JSON' }, 400);
   }
+
+  logTrace('User Query Received', body);
 
   const parseResult = chatRequestSchema.safeParse(body);
   if (!parseResult.success) {
