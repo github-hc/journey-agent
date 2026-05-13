@@ -152,6 +152,5 @@ When a user asks: *"When is the next train to Edinburgh?"*
 
 
 ---
-<div align="center">
-  <i>Engineered for robust, local AI orchestration.</i>
-</div>
+<img width="2874" height="1532" alt="image" src="https://github.com/user-attachments/assets/ad6d4cba-62d6-46af-bda4-1b3b2106e1ed" />
+
