@@ -24,7 +24,11 @@ function addMessage(role, content, isStreaming = false) {
   
   if (isStreaming) {
     bubbleDiv.id = 'streaming-bubble';
-    bubbleDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+    bubbleDiv.innerHTML = `<div class="thinking-indicator">
+      <div class="shimmer-line" style="width: 75%"></div>
+      <div class="shimmer-line" style="width: 50%"></div>
+      <div class="shimmer-line" style="width: 60%"></div>
+    </div>`;
   } else {
     bubbleDiv.innerHTML = role === 'user' ? content : marked.parse(content);
   }
@@ -72,19 +76,35 @@ chatForm.addEventListener('submit', async (e) => {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     
-    streamBubble.innerHTML = ''; // Clear typing indicator
+    let isFirstChunk = true;
+    let renderFrame;
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       
+      if (isFirstChunk) {
+        streamBubble.innerHTML = ''; // Clear typing indicator only when we actually get data
+        isFirstChunk = false;
+      }
+      
       const chunkStr = decoder.decode(value, { stream: true });
       assistantFullText += chunkStr;
       
-      // We parse markdown on the fly as it streams in!
-      streamBubble.innerHTML = marked.parse(assistantFullText);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      // Use requestAnimationFrame to debounce heavy Markdown parsing and prevent UI freeze
+      if (!renderFrame) {
+        renderFrame = requestAnimationFrame(() => {
+          streamBubble.innerHTML = marked.parse(assistantFullText) + '<span class="pulse-dots"><span>.</span><span>.</span><span>.</span></span>';
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          renderFrame = null;
+        });
+      }
     }
+    
+    // Ensure final render without the dots
+    if (renderFrame) cancelAnimationFrame(renderFrame);
+    streamBubble.innerHTML = marked.parse(assistantFullText);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
     
     // Save the final response to history
     chatHistory.push({ role: 'assistant', content: assistantFullText });

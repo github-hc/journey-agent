@@ -111,7 +111,7 @@ class JourneyAgentServer {
         },
         {
           name: 'get_train_schedule',
-          description: 'Retrieves the detailed schedule/route for a specific train on a given journey date',
+          description: 'Retrieves the detailed schedule/route for a specific train. WARNING: Requires exact 5-digit train number. Do NOT guess. Use search_trains FIRST if you only have a train name (e.g. "Shatabdi").',
           inputSchema: {
             type: 'object',
             properties: {
@@ -137,7 +137,7 @@ class JourneyAgentServer {
         },
         {
           name: 'get_live_station_board',
-          description: 'Retrieves real-time information about trains arriving at or departing from a specific station',
+          description: 'Retrieves real-time information about trains arriving/departing a station. WARNING: Requires exact 2-4 letter station code (e.g. "NDLS"). Do NOT guess codes. Use search_stations FIRST if you only have the city name.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -150,14 +150,14 @@ class JourneyAgentServer {
         },
         {
           name: 'get_trains_between',
-          description: 'Finds all trains that run between two specified stations',
+          description: 'Finds trains between two stations. PREREQUISITE: You must call search_stations FIRST to get verified codes. You do NOT know station codes from memory.',
           inputSchema: {
             type: 'object',
             properties: {
-              from: { type: 'string', description: 'Source station code' },
-              to: { type: 'string', description: 'Destination station code' }
+              verifiedSourceStationCode: { type: 'string', description: 'Station code returned by search_stations for the origin city. Example: JP for Jaipur.' },
+              verifiedDestinationStationCode: { type: 'string', description: 'Station code returned by search_stations for the destination city. Example: NDLS for Delhi.' }
             },
-            required: ['from', 'to'],
+            required: ['verifiedSourceStationCode', 'verifiedDestinationStationCode'],
           },
         }
       ],
@@ -173,8 +173,25 @@ class JourneyAgentServer {
           }
           case 'search_trains': {
             const { query } = request.params.arguments as any;
-            const data = await this.fetchApi('/search/trains', { query });
-            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+            const rawData = await this.fetchApi('/search/trains', { query });
+            
+            // Critical fix for SLMs: Strip massive arrays like rakeDetails to prevent hallucination
+            let cleanData = rawData;
+            if (rawData?.success && Array.isArray(rawData?.data)) {
+              cleanData = {
+                success: true,
+                data: rawData.data.map((t: any) => ({
+                  trainNumber: t.trainNumber,
+                  trainName: t.trainName,
+                  sourceStationCode: t.sourceStationCode,
+                  destinationStationCode: t.destinationStationCode,
+                  runningDays: t.runningDays?.days,
+                  travelTimeMinutes: t.travelTimeMinutes
+                }))
+              };
+            }
+            
+            return { content: [{ type: 'text', text: JSON.stringify(cleanData, null, 2) }] };
           }
           case 'get_live_map': {
             const data = await this.fetchApi('/trains/live-map');
@@ -196,9 +213,44 @@ class JourneyAgentServer {
             return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
           }
           case 'get_trains_between': {
-            const { from, to } = request.params.arguments as any;
-            const data = await this.fetchApi('/trains/between', { from, to });
-            return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
+            const { from, to, verifiedSourceStationCode, verifiedDestinationStationCode } = request.params.arguments as any;
+            
+            // Handle both old and new parameter names during transition
+            const src = (verifiedSourceStationCode || from || '').toUpperCase();
+            const dst = (verifiedDestinationStationCode || to || '').toUpperCase();
+
+            const rawData = await this.fetchApi('/trains/between', { from: src, to: dst });
+            
+            // Clean the data to prevent SLM hallucination
+            let cleanData = rawData;
+            if (rawData?.success && Array.isArray(rawData?.data?.trains)) {
+              cleanData = {
+                ...rawData,
+                data: {
+                  ...rawData.data,
+                  trains: rawData.data.trains.map((t: any) => ({
+                    trainNumber: t.trainNumber,
+                    trainName: t.trainName,
+                    sourceStationCode: t.sourceStationCode,
+                    destinationStationCode: t.destinationStationCode,
+                    runningDays: t.runningDays?.days,
+                    travelTimeMinutes: t.travelTimeMinutes
+                  }))
+                }
+              };
+            }
+            
+            // Agentic Feedback Loop: If the agent guessed a code and got 0 trains, explicitly instruct it to verify the code!
+            if (cleanData?.success && cleanData?.data?.totalTrains === 0) {
+              return { 
+                content: [{ 
+                  type: 'text', 
+                  text: JSON.stringify(cleanData, null, 2) + '\n\nAGENT WARNING: 0 trains found. Did you guess the station codes? You MUST call search_stations to verify the codes for these cities, then try get_trains_between again with the verified codes.' 
+                }] 
+              };
+            }
+
+            return { content: [{ type: 'text', text: JSON.stringify(cleanData, null, 2) }] };
           }
           default:
             throw new McpError(
