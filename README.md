@@ -12,8 +12,9 @@
 
 JourneyAgent is a modern AI systems engineering project that demonstrates how to build a production-grade agentic workflow using local language models. It acts as an intelligent travel planner, capable of reasoning over real-world railway APIs, dynamically using tools via the Model Context Protocol (MCP), and orchestrating complex capabilities to generate accurate travel responses.
 
-> [!NOTE]  
-> 📷 *Screenshot Placeholder: Main UI Dashboard*
+<div align="center">
+  <img width="800" alt="JourneyAgent UI" src="https://github.com/user-attachments/assets/ad6d4cba-62d6-46af-bda4-1b3b2106e1ed" />
+</div>
 
 ## Why This Project Exists
 
@@ -66,7 +67,7 @@ journey-agent/
 The Orchestrator is the core engine of JourneyAgent. It receives a natural language query and initializes a reasoning loop. Instead of immediately generating a final answer, it analyzes the prompt to determine what information is missing. It then constructs a plan, invoking necessary tools sequentially or in parallel, injecting the retrieved context back into the prompt, and finally instructing the LLM to synthesize the results into a cohesive response.
 
 ### Model Context Protocol (MCP)
-MCP is used to standardize how tools are exposed to the AI model. Rather than hardcoding API calls into the orchestrator, the `mcp-tools` package defines a clear contract (using Zod schemas) for what capabilities are available (e.g., `getTrainSchedule`, `findStation`). The orchestrator dynamically discovers these tools and requests execution, keeping the core reasoning loop completely decoupled from the specific domain APIs.
+MCP is used to standardize how tools are exposed to the AI model. Rather than hardcoding API calls into the orchestrator, the `mcp-tools` package defines a clear contract (using Zod schemas) for what capabilities are available (e.g., `get_train_schedule`, `search_stations`). The orchestrator dynamically discovers these tools and requests execution, keeping the core reasoning loop completely decoupled from the specific domain APIs.
 
 ### Local LLMs
 We leverage **Ollama** running **Qwen2.5** to power the system's reasoning capabilities. By carefully crafting system prompts and structuring the tool schemas, we coax robust JSON-based function calling out of a local model, matching the capability of hosted inference endpoints without the associated data privacy concerns or latency overhead.
@@ -97,12 +98,16 @@ ollama run qwen2.5
 
 ### 2. Environment Variables
 
-Create `.env` files in the respective directories based on their `.env.example` equivalents.
+Create `.env` files in the respective directories.
 
-**Example `mcp-tools/.env`:**
+**`mcp-tools/.env`:**
 ```env
-RAIL_API_KEY=your_api_key_here
-RAIL_API_BASE_URL=https://api.example-rail.com/v1
+RAILRADAR_API_KEY=your_api_key_here
+```
+
+**`orchestrator/.env`:**
+```env
+AGENT_DEBUG=true  # Enables detailed reasoning traces in the terminal
 ```
 
 ### 3. Running Locally
@@ -123,34 +128,26 @@ npm run dev
 ## Example Usage
 
 ### User Queries
-1. I need to travel from Jaipur to Delhi tomorrow. What are my train options?
-2. What trains are arriving at New Delhi station in the next 4 hours?
-3. Can you show me the full route and stoppage schedule for the Ajmer Shatabdi Express going to Delhi?
-4. Are there any trains running on the network right now? Give me a quick overview of the live map.
-5. Give me a list of all Vande Bharat trains operating in the North Western Railway zone."
-6. I'm currently at Jaipur Junction. Find the next fast train leaving for New Delhi, and tell me its entire route so I know how many stops there are.
+
+- *"I need to travel from Jaipur to Delhi tomorrow. What are my train options?"*
+- *"What trains are arriving at New Delhi station in the next 4 hours?"*
+- *"Can you show me the full route and stoppage schedule for the Ajmer Shatabdi Express going to Delhi?"*
+- *"Are there any trains running on the network right now? Give me a quick overview of the live map."*
+- *"Give me a list of all Vande Bharat trains operating in the North Western Railway zone."*
+- *"I'm currently at Jaipur Junction. Find the next fast train leaving for New Delhi, and tell me its entire route so I know how many stops there are."*
 
 ### Orchestration Flow
-When a user asks: *"When is the next train to Edinburgh?"*
+When a user asks: *"I need to travel from Jaipur to Delhi tomorrow. What are my train options?"*
 
-1. **Parse:** Orchestrator receives the query.
-2. **Tool Selection:** Orchestrator queries MCP server for available tools and selects `getTrainSchedule`.
-3. **Execution:** MCP server validates the parameters via Zod and hits the Rail API.
-4. **Synthesis:** Rail API returns JSON data. Orchestrator feeds this data back to Qwen2.5.
-5. **Response:** Qwen2.5 generates a human-readable summary of the upcoming trains.
-
-> [!NOTE]  
-> 📷 *Screenshot Placeholder: Terminal showing Orchestrator Reasoning Trace*
+1. **Parse:** Orchestrator receives the query and initiates the reasoning loop.
+2. **Tool Selection:** Orchestrator queries MCP server for available tools and selects `search_stations` for both Jaipur and Delhi.
+3. **Execution:** MCP server validates parameters and returns the station codes (`JP` and `NDLS`).
+4. **Tool Chaining:** The LLM receives the codes and decides to call `get_trains_between`.
+5. **Synthesis:** The Rail API returns real-time schedule data. Orchestrator feeds this JSON back to Qwen2.5.
+6. **Response:** Qwen2.5 generates a highly formatted, human-readable summary of the upcoming trains.
 
 ## Design Principles
 
 - **Separation of Concerns:** The AI runtime (Orchestrator) knows nothing about trains. The MCP tools know nothing about LLMs.
 - **Fail Gracefully:** If an API goes down, the orchestrator is instructed to explain the failure to the user rather than crashing the application.
 - **Determinism at the Boundaries:** While the LLM is probabilistic, all tool inputs and API outputs are strictly typed and validated at runtime using Zod.
-
-
-
-
----
-<img width="2874" height="1532" alt="image" src="https://github.com/user-attachments/assets/ad6d4cba-62d6-46af-bda4-1b3b2106e1ed" />
-
