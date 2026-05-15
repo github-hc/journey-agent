@@ -98,6 +98,9 @@ ollama run qwen2.5
 
 ### 2. Environment Variables
 
+> [!WARNING]
+> **This MVP heavily depends on the RailRadar API.** You MUST obtain a valid API token from [https://railradar.in/](https://railradar.in/) to use the real-time railway data tools. You can find more details in their [API documentation](https://railradar.in/docs#description/introduction).
+
 Create `.env` files in the respective directories.
 
 **`mcp-tools/.env`:**
